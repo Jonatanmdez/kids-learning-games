@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#fff7e8">
+<title>Kids Learning Games</title>
+<style>
+:root{--paper:#fff7e8;--ink:#42372f;--muted:#78695b;--card:#fff;--blue:#58afe7;--blue-dark:#3287bd;--shadow:#dfcfb5;--focus:#176fd0}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;font-family:ui-rounded,"SF Pro Rounded",system-ui,-apple-system,sans-serif;color:var(--ink);background:var(--paper)}
+body{min-height:100dvh;padding:calc(18px + env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) calc(20px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));background:radial-gradient(circle at 10% 4%,#ffe5a6 0 7%,transparent 8%),radial-gradient(circle at 92% 12%,#d9f3ff 0 8%,transparent 9%),linear-gradient(160deg,#fffdf6,var(--paper));user-select:none;-webkit-user-select:none}
+header{width:min(980px,100%);margin:0 auto 18px;text-align:center}.hero{font-size:clamp(58px,12vw,92px);line-height:1;animation:float 3s ease-in-out infinite}h1{margin:8px 0 4px;font-size:clamp(30px,6vw,50px);line-height:1.05}.subtitle{margin:0;color:var(--muted);font-size:clamp(17px,3vw,22px);font-weight:750}
+.language{display:flex;justify-content:center;gap:5px;margin:16px auto 4px;padding:5px;width:max-content;background:rgba(255,255,255,.94);border:2px solid rgba(80,65,50,.1);border-radius:19px;box-shadow:0 4px 0 var(--shadow)}.language button{min-width:48px;min-height:40px;padding:5px 9px;border:0;border-radius:14px;background:transparent;color:var(--ink);font:850 15px/1 system-ui,sans-serif;cursor:pointer}.language button[aria-pressed="true"]{background:var(--blue);color:#fff}.language button:focus-visible,.game:focus-visible{outline:5px solid var(--focus);outline-offset:4px}
+.games{display:grid;width:min(980px,100%);margin:auto;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(12px,2.5vw,22px)}.game{--accent:#63ca82;--accent-dark:#3a9e59;position:relative;display:flex;min-height:210px;flex-direction:column;align-items:center;justify-content:center;padding:20px 14px 17px;border:0;border-radius:30px;color:var(--ink);background:var(--card);box-shadow:0 9px 0 var(--shadow);text-align:center;text-decoration:none;cursor:pointer;transition:transform .14s,box-shadow .14s}.game::before{content:"";position:absolute;inset:0 0 auto;height:10px;border-radius:30px 30px 0 0;background:var(--accent)}.game:active{transform:translateY(6px);box-shadow:0 3px 0 var(--shadow)}.icon{font-size:clamp(55px,9vw,78px);line-height:1}.name{margin-top:12px;font-size:clamp(20px,3vw,27px);font-weight:900;line-height:1.05}.description{margin-top:7px;color:var(--muted);font-size:clamp(14px,2vw,17px);font-weight:700;line-height:1.2}.chinese{--accent:#ff7979}.chinese2{--accent:#f3a84a}.count{--accent:#5ab6e8}.pattern{--accent:#9b78df}.odd{--accent:#ff8c68}.sequence{--accent:#62c98a}.maze{--accent:#77b958}.bag{--accent:#e99055}.clothes{--accent:#ff8fb1}
+@keyframes float{50%{transform:translateY(-8px) rotate(2deg)}}
+@media(max-width:760px){.games{grid-template-columns:repeat(2,minmax(0,1fr))}.game{min-height:190px}}
+@media(max-width:430px){body{padding-left:11px;padding-right:11px}.games{gap:11px}.game{min-height:174px;padding:16px 8px 13px;border-radius:23px}.game::before{border-radius:23px 23px 0 0}.description{font-size:13px}}
+@media(max-height:500px) and (orientation:landscape){header{margin-bottom:10px}.hero{font-size:48px}h1{font-size:30px}.subtitle{font-size:15px}.language{position:fixed;z-index:5;right:max(8px,env(safe-area-inset-right));top:max(8px,env(safe-area-inset-top));margin:0}.games{grid-template-columns:repeat(3,minmax(0,1fr))}.game{min-height:145px}.icon{font-size:48px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="hero" aria-hidden="true">🧩</div>
+  <h1 id="title">Choose a game</h1>
+  <p class="subtitle" id="subtitle">Play, listen, think, and learn</p>
+  <div class="language" id="language" aria-label="Language">
+    <button type="button" data-lang="es" aria-label="Español">ES</button>
+    <button type="button" data-lang="en" aria-label="English">EN</button>
+    <button type="button" data-lang="zh" aria-label="中文">中文</button>
+  </div>
+</header>
+
+<main class="games" id="games" aria-label="Available games">
+  <a class="game chinese" href="juego-chino-panda.html" data-game="panda"><span class="icon" aria-hidden="true">🐼</span><span class="name"></span><span class="description"></span></a>
+  <a class="game chinese2" href="juego-chino-panda-v2.html" data-game="panda2"><span class="icon" aria-hidden="true">🐼🎯</span><span class="name"></span><span class="description"></span></a>
+  <a class="game count" href="cuenta-los-objetos.html" data-game="count"><span class="icon" aria-hidden="true">🐙🔢</span><span class="name"></span><span class="description"></span></a>
+  <a class="game pattern" href="completa-el-patron.html" data-game="pattern"><span class="icon" aria-hidden="true">🦉🔴</span><span class="name"></span><span class="description"></span></a>
+  <a class="game odd" href="busca-el-intruso.html" data-game="odd"><span class="icon" aria-hidden="true">🧐🍎</span><span class="name"></span><span class="description"></span></a>
+  <a class="game sequence" href="ordena-la-secuencia.html" data-game="sequence"><span class="icon" aria-hidden="true">🧩➡️</span><span class="name"></span><span class="description"></span></a>
+  <a class="game maze" href="laberinto-de-caminos.html" data-game="maze"><span class="icon" aria-hidden="true">🐰🥕</span><span class="name"></span><span class="description"></span></a>
+  <a class="game bag" href="prepara-la-mochila.html" data-game="bag"><span class="icon" aria-hidden="true">🎒</span><span class="name"></span><span class="description"></span></a>
+  <a class="game clothes" href="elige-la-ropa.html" data-game="clothes"><span class="icon" aria-hidden="true">👕☀️</span><span class="name"></span><span class="description"></span></a>
+</main>
+
+
+<script>
+"use strict";
+const COPY={
+  es:{title:"Elige un juego",subtitle:"Juega, escucha, piensa y aprende",gamesLabel:"Juegos disponibles",games:{
+    panda:["Chino con Panda","Escucha palabras y toca el dibujo"],panda2:["Panda chino avanzado","Categorías y niveles de dificultad"],count:["Cuenta los objetos","Aprende a contar del uno al diez"],pattern:["Completa el patrón","Descubre qué dibujo viene después"],odd:["Busca el intruso","Encuentra el dibujo diferente"],sequence:["Ordena la secuencia","Pon cada historia en orden"],maze:["Laberinto de caminos","Lleva al animal hasta su comida"],bag:["Prepara la mochila","Elige lo necesario para cada salida"],clothes:["Elige la ropa","Vístete para cada situación"]}},
+  en:{title:"Choose a game",subtitle:"Play, listen, think, and learn",gamesLabel:"Available games",games:{
+    panda:["Chinese with Panda","Listen to words and tap the picture"],panda2:["Advanced Chinese Panda","Categories and difficulty levels"],count:["Count the objects","Learn to count from one to ten"],pattern:["Complete the pattern","Find which picture comes next"],odd:["Find the odd one out","Find the picture that is different"],sequence:["Put the sequence in order","Arrange each story in the right order"],maze:["Path maze","Take the animal to its food"],bag:["Pack the backpack","Choose what each trip needs"],clothes:["Choose the clothes","Dress for each situation"]}},
+  zh:{title:"选择一个游戏",subtitle:"玩一玩，听一听，想一想，学一学",gamesLabel:"可选游戏",games:{
+    panda:["熊猫学中文","听词语，然后点击图片"],panda2:["进阶熊猫中文","类别和难度等级"],count:["数一数","学习从一数到十"],pattern:["完成规律","找出接下来的图案"],odd:["找出不同","找到不一样的图案"],sequence:["排列顺序","按正确顺序排列故事"],maze:["路径迷宫","带小动物找到食物"],bag:["准备书包","为每次出行选择物品"],clothes:["选择衣服","为不同情景选择衣服"]}}
+};
+let language="en";
+try{const query=new URLSearchParams(location.search).get("lang"),saved=localStorage.getItem("kidsGameLanguage"),candidate=query||saved;if(COPY[candidate])language=candidate}catch(_){const query=new URLSearchParams(location.search).get("lang");if(COPY[query])language=query}
+function render(){const copy=COPY[language];document.documentElement.lang=language==="zh"?"zh-Hans":language;document.title=copy.title+" · Kids Learning Games";document.getElementById("title").textContent=copy.title;document.getElementById("subtitle").textContent=copy.subtitle;document.getElementById("games").setAttribute("aria-label",copy.gamesLabel);document.getElementById("language").setAttribute("aria-label",language==="es"?"Idioma":language==="zh"?"语言":"Language");document.querySelectorAll("[data-game]").forEach(card=>{const game=copy.games[card.dataset.game];card.querySelector(".name").textContent=game[0];card.querySelector(".description").textContent=game[1];const target=new URL(card.getAttribute("href"),location.href);target.searchParams.set("lang",language);card.href=target.href;card.setAttribute("aria-label",`${game[0]}. ${game[1]}`)});document.querySelectorAll("[data-lang]").forEach(button=>button.setAttribute("aria-pressed",String(button.dataset.lang===language)))}
+document.getElementById("language").addEventListener("click",event=>{const button=event.target.closest("[data-lang]");if(!button)return;language=button.dataset.lang;try{localStorage.setItem("kidsGameLanguage",language)}catch(_){}const url=new URL(location.href);url.searchParams.set("lang",language);history.replaceState(null,"",url);render()});
+render();
+</script>
+</body>
+</html>

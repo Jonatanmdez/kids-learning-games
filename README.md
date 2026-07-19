@@ -13,6 +13,7 @@ A collection of simple, touch-friendly learning games designed for a four-year-o
 
 ## Games
 
+- `index.html` — multilingual launcher menu for all games.
 - `juego-chino-panda.html` — introductory Chinese listening and picture-matching game.
 - `juego-chino-panda-v2.html` — expanded Chinese game with categories and difficulty levels.
 - `cuenta-los-objetos.html` — count objects from one to ten.
@@ -35,7 +36,7 @@ The selected language is stored locally when the browser permits it. It is also 
 
 ## Running the games
 
-Open any `.html` file directly in Safari or another modern browser. No installation, package manager, build step, web server, or internet connection is required.
+Open `index.html` to use the game launcher, or open any individual `.html` file directly in Safari or another modern browser. No installation, package manager, build step, web server, or internet connection is required.
 
 For example:
 
