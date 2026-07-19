@@ -23,6 +23,10 @@ A collection of simple, touch-friendly learning games designed for a four-year-o
 - `laberinto-de-caminos.html` — guide an animal through short grid mazes.
 - `prepara-la-mochila.html` — choose suitable objects for different activities.
 - `elige-la-ropa.html` — choose clothing for weather and everyday situations.
+- `empareja-las-sombras.html` — match objects and animals to their silhouettes.
+- `memoria-de-parejas.html` — turn over cards and find matching pairs.
+- `mezcla-los-colores.html` — learn the results of simple color mixtures.
+- `semaforo.html` — practise when to stop, wait, and go at traffic lights.
 
 ## Languages
 
