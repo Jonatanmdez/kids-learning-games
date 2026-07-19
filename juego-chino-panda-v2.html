@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我的中文游戏 · Panda chino V2</title>
+<style>
+  :root{
+    --paper:#fff8ef; --ink:#4a3728; --muted:#806f5c; --red:#ff6b6b;
+    --sun:#ffc93c; --mint:#5fd37a; --sky:#54b4f0; --grape:#9b72db;
+    --pink:#ff8fb1; --teal:#38bdb6; --card:#fff; --shadow:#e7d8c4;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  html,body{margin:0; min-height:100%}
+  body{
+    min-height:100vh; min-height:100dvh; overflow-x:hidden;
+    font-family:"SF Pro Rounded",ui-rounded,"Hiragino Maru Gothic ProN",system-ui,sans-serif;
+    color:var(--ink); background:radial-gradient(120% 80% at 50% -10%,#ffe9ce 0%,var(--paper) 58%);
+    display:flex; flex-direction:column; user-select:none; -webkit-user-select:none;
+  }
+  button{font:inherit}
+  button:focus-visible{outline:5px solid #275d93; outline-offset:4px}
+  .sr-only{position:absolute!important; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0}
+
+  .screen{
+    position:fixed; inset:0; z-index:30; overflow:auto;
+    background:radial-gradient(120% 80% at 50% -10%,#ffe9ce 0%,var(--paper) 60%);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:14px; padding:24px; text-align:center; transition:opacity .3s;
+  }
+  .screen.hide{opacity:0; pointer-events:none; visibility:hidden; transition:opacity .3s,visibility 0s .3s}
+  .hero{font-size:clamp(70px,15vh,126px); line-height:1; animation:float 3s ease-in-out infinite}
+  .title{font-size:clamp(27px,5vh,42px); margin:0; font-weight:900}
+  .subtitle{font-size:clamp(15px,2.4vh,20px); color:var(--muted); margin:0 0 6px; font-weight:650}
+  .cats{display:grid; grid-template-columns:repeat(2,minmax(132px,1fr)); gap:13px; width:min(450px,92vw)}
+  .cat{
+    border:0; border-radius:24px; padding:17px 10px; color:#fff; cursor:pointer;
+    font-weight:850; font-size:clamp(17px,2.6vh,22px); min-height:98px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
+    box-shadow:0 8px 0 rgba(0,0,0,.14); transition:transform .1s,box-shadow .1s;
+  }
+  .cat:active{transform:translateY(5px); box-shadow:0 3px 0 rgba(0,0,0,.14)}
+  .cat .icon{font-size:34px}.cat .sub{font-size:13px; font-weight:650; opacity:.92}
+  .animals{background:var(--mint)}.colors{background:var(--grape)}.numbers{background:var(--sky)}
+  .food{background:var(--red)}.fruit{background:var(--pink)}.bodycat{background:var(--teal)}
+  .cat.all{background:var(--sun); color:#684c08; grid-column:1/3; min-height:76px}
+  .levels{display:grid; gap:16px; width:min(430px,92vw)}
+  .level{
+    border:0; border-radius:24px; padding:18px 20px; color:#fff; cursor:pointer;
+    display:grid; grid-template-columns:auto 1fr; column-gap:14px; align-items:center;
+    text-align:left; box-shadow:0 8px 0 rgba(0,0,0,.14); transition:transform .1s,box-shadow .1s;
+  }
+  .level:active{transform:translateY(5px);box-shadow:0 3px 0 rgba(0,0,0,.14)}
+  .level .licon{font-size:38px;grid-row:1/3}.level strong{font-size:22px}.level small{font-size:14px;font-weight:650;opacity:.92}
+  .level.easy{background:var(--mint)}.level.medium{background:var(--sky)}.level.hard{background:var(--grape)}
+  .back{
+    border:0;background:#fff;color:var(--ink);border-radius:18px;padding:11px 20px;
+    font-weight:800;cursor:pointer;box-shadow:0 5px 0 var(--shadow)
+  }
+
+  .topbar{height:62px; display:flex; align-items:center; justify-content:center; padding:8px 70px 0; position:relative}
+  .home{
+    position:fixed; top:10px; left:12px; z-index:6; border:0; background:#fff;
+    box-shadow:0 4px 0 var(--shadow); border-radius:50%; width:48px; height:48px;
+    font-size:22px; cursor:pointer;
+  }
+  .home:active{transform:translateY(3px); box-shadow:0 1px 0 var(--shadow)}
+  .score{font-size:clamp(15px,2.5vh,21px); text-align:center; font-weight:750}
+  .progress{position:fixed; top:0; left:0; right:0; height:5px; background:#eadfce; z-index:8}
+  .progress span{display:block; height:100%; width:0; background:linear-gradient(90deg,var(--sky),var(--mint)); transition:width .3s}
+
+  .stage{display:flex; flex-direction:column; align-items:center; text-align:center; padding:2px 16px 6px}
+  .panda{
+    border:0; background:transparent; padding:0; font-size:clamp(64px,13vh,112px);
+    line-height:1; cursor:pointer; filter:drop-shadow(0 5px 0 rgba(74,55,40,.10));
+  }
+  .panda.cheer{animation:cheer .65s ease}.panda.sad{animation:sad .5s ease}
+  .speech{min-height:38px; color:var(--muted); font-weight:750; font-size:clamp(14px,2.2vh,18px); margin-top:2px}
+  .prompt{display:flex; flex-direction:column; align-items:center; gap:0}
+  .hanzi{font-size:clamp(42px,8vh,76px); font-weight:900; letter-spacing:2px; line-height:1.05}
+  .pinyin{font-size:clamp(18px,3vh,25px); color:var(--muted); font-weight:700; margin-top:3px}
+  .speaker{
+    margin-top:9px; width:clamp(66px,10vh,88px); height:clamp(66px,10vh,88px);
+    border:0; border-radius:50%; background:var(--sun); box-shadow:0 7px 0 #dea529;
+    font-size:clamp(31px,5vh,43px); cursor:pointer; color:#684c08;
+  }
+  .speaker:active{transform:translateY(5px); box-shadow:0 2px 0 #dea529}
+  .speaker[disabled]{filter:grayscale(.65); opacity:.65; cursor:not-allowed}
+
+  .cards{
+    flex:1 1 auto; width:100%; display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:clamp(10px,2.4vw,24px); padding:clamp(10px,2vh,18px) clamp(14px,4vw,40px) 36px;
+    align-content:center;
+  }
+  .cards.medium{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .cards.hard{grid-template-columns:repeat(3,minmax(0,1fr));max-width:900px;align-self:center}
+  .card{
+    background:var(--card); border-radius:28px; border:0; box-shadow:0 10px 0 var(--shadow);
+    aspect-ratio:1; min-height:110px; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; overflow:hidden; position:relative; transition:transform .1s,box-shadow .1s;
+  }
+  .card:active{transform:translateY(7px); box-shadow:0 3px 0 var(--shadow)}
+  .emoji{font-size:clamp(54px,14vh,124px); line-height:1}
+  .swatchdot{width:62%; height:62%; border-radius:50%; border:5px solid rgba(74,55,40,.2); box-shadow:inset 0 0 0 2px rgba(255,255,255,.45)}
+  .dots{display:flex; flex-wrap:wrap; gap:6%; justify-content:center; align-items:center; width:82%; height:82%}
+  .dots span{font-size:clamp(18px,4.5vh,42px); line-height:1}
+  .number{font-size:clamp(52px,13vh,118px);font-weight:950;color:var(--sky);line-height:1}
+  .card.correct{animation:pop .5s ease; box-shadow:0 0 0 6px var(--mint),0 10px 0 var(--shadow)}
+  .card.wrong{animation:wobble .45s ease; box-shadow:0 0 0 5px var(--red),0 10px 0 var(--shadow)}
+  .confetti{position:fixed; inset:0; pointer-events:none; z-index:20; overflow:hidden}
+  .confetti i{position:absolute; top:-20px; width:12px; height:12px; border-radius:3px; animation:fall linear forwards}
+  .hint{position:fixed; bottom:5px; left:0; right:0; text-align:center; font-size:12px; color:#9c8b74; z-index:4; pointer-events:none}
+
+  @keyframes float{50%{transform:translateY(-12px)}}
+  @keyframes cheer{30%{transform:scale(1.25) rotate(-8deg)}60%{transform:scale(1.25) rotate(8deg)}}
+  @keyframes sad{25%{transform:rotate(-7deg)}75%{transform:rotate(7deg)}}
+  @keyframes pop{40%{transform:scale(1.12)}}
+  @keyframes wobble{20%{transform:translateX(-12px)}40%{transform:translateX(12px)}60%{transform:translateX(-8px)}80%{transform:translateX(8px)}}
+  @keyframes fall{to{transform:translateY(110vh) rotate(720deg); opacity:.9}}
+  @media(max-height:700px){.panda{font-size:58px}.speech{min-height:25px}.speaker{width:60px;height:60px}.cards{padding-top:7px}.stage{padding-top:0}}
+  @media(max-width:700px){.cards.medium{grid-template-columns:repeat(2,minmax(0,1fr));max-width:520px;align-self:center}}
+  @media(max-width:520px){.cards{gap:9px;padding-left:10px;padding-right:10px}.card{border-radius:20px;min-height:94px}.hint{font-size:11px}}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important; transition:none!important}}
+</style>
+</head>
+<body>
+  <div class="screen" id="startScreen">
+    <div class="hero" aria-hidden="true">🐼</div>
+    <h1 class="title"><span lang="zh-CN">我的中文游戏</span></h1>
+    <p class="subtitle">Escucha y toca · primeras palabras en chino</p>
+    <div class="cats" id="cats" aria-label="Elige una categoría">
+      <button class="cat animals" data-cat="animals"><span class="icon" aria-hidden="true">🐰</span><span lang="zh-CN">动物</span><span class="sub">Animales</span></button>
+      <button class="cat colors" data-cat="colors"><span class="icon" aria-hidden="true">🎨</span><span lang="zh-CN">颜色</span><span class="sub">Colores</span></button>
+      <button class="cat numbers" data-cat="numbers"><span class="icon" aria-hidden="true">🔢</span><span lang="zh-CN">数字</span><span class="sub">Números</span></button>
+      <button class="cat food" data-cat="food"><span class="icon" aria-hidden="true">🍗</span><span lang="zh-CN">食物</span><span class="sub">Comida</span></button>
+      <button class="cat fruit" data-cat="fruit"><span class="icon" aria-hidden="true">🍓</span><span lang="zh-CN">水果</span><span class="sub">Fruta</span></button>
+      <button class="cat bodycat" data-cat="body"><span class="icon" aria-hidden="true">🖐️</span><span lang="zh-CN">身体</span><span class="sub">Cuerpo</span></button>
+      <button class="cat all" data-cat="all"><span class="icon" aria-hidden="true">✨</span>Todo mezclado</button>
+    </div>
+  </div>
+
+  <div class="screen hide" id="levelScreen" aria-labelledby="levelTitle">
+    <div class="hero" aria-hidden="true">🎯</div>
+    <h2 class="title" id="levelTitle">Elige el nivel</h2>
+    <p class="subtitle" id="levelCategory"></p>
+    <div class="levels" id="levels">
+      <button class="level easy" data-level="easy"><span class="licon" aria-hidden="true">🌱</span><strong>Fácil</strong><small>6 palabras · 3 respuestas</small></button>
+      <button class="level medium" data-level="medium"><span class="licon" aria-hidden="true">🚀</span><strong>Medio</strong><small>12 palabras · 4 respuestas</small></button>
+      <button class="level hard" data-level="hard"><span class="licon" aria-hidden="true">🏆</span><strong>Difícil</strong><small>36 palabras · 6 respuestas</small></button>
+    </div>
+    <button class="back" id="levelBack">← Volver a categorías</button>
+  </div>
+
+  <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+  <button class="home" id="homeBtn" aria-label="Volver al menú de categorías" hidden>🏠</button>
+  <header class="topbar"><div class="score" id="score" aria-label="Progreso de la partida"></div></header>
+  <main class="stage">
+    <button class="panda" id="panda" aria-label="Panda: repetir la palabra">🐼</button>
+    <div class="speech" id="pandaSpeech" aria-live="polite">¡Elige una categoría!</div>
+    <div class="prompt">
+      <div class="hanzi" id="hanzi" lang="zh-CN"></div>
+      <div class="pinyin" id="pinyin"></div>
+    </div>
+    <button class="speaker" id="speaker" aria-label="Escuchar otra vez" disabled>🔊</button>
+  </main>
+  <section class="cards" id="cards" aria-label="Opciones de respuesta"></section>
+  <div class="confetti" id="confetti" aria-hidden="true"></div>
+  <div class="hint" id="audioHint">Toca el altavoz o el panda para repetir 🔊</div>
+  <div class="sr-only" id="status" aria-live="assertive"></div>
+
+<script>
+const DATA = {
+  animals:[
+    {hz:"猫",py:"māo",es:"gato",emoji:"🐱"},{hz:"狗",py:"gǒu",es:"perro",emoji:"🐶"},
+    {hz:"鱼",py:"yú",es:"pez",emoji:"🐟"},{hz:"鸟",py:"niǎo",es:"pájaro",emoji:"🐦"},
+    {hz:"兔子",py:"tùzi",es:"conejo",emoji:"🐰"},{hz:"熊猫",py:"xióngmāo",es:"panda",emoji:"🐼"},
+    {hz:"马",py:"mǎ",es:"caballo",emoji:"🐴"},{hz:"牛",py:"niú",es:"vaca",emoji:"🐮"},
+    {hz:"猪",py:"zhū",es:"cerdo",emoji:"🐷"},{hz:"老虎",py:"lǎohǔ",es:"tigre",emoji:"🐯"},
+    {hz:"狮子",py:"shīzi",es:"león",emoji:"🦁"},{hz:"大象",py:"dàxiàng",es:"elefante",emoji:"🐘"}
+  ],
+  colors:[
+    {hz:"红色",py:"hóngsè",es:"rojo",color:"#ff5b5b"},{hz:"黄色",py:"huángsè",es:"amarillo",color:"#ffd23c"},
+    {hz:"蓝色",py:"lánsè",es:"azul",color:"#3fa9f5"},{hz:"绿色",py:"lǜsè",es:"verde",color:"#4bd16a"},
+    {hz:"紫色",py:"zǐsè",es:"morado",color:"#9b72db"},{hz:"橙色",py:"chéngsè",es:"naranja",color:"#ff9f40"},
+    {hz:"黑色",py:"hēisè",es:"negro",color:"#222"},{hz:"白色",py:"báisè",es:"blanco",color:"#fff"},
+    {hz:"粉色",py:"fěnsè",es:"rosa",color:"#ff9ec4"},
+    {hz:"棕色",py:"zōngsè",es:"marrón",color:"#8b5a3c"},{hz:"灰色",py:"huīsè",es:"gris",color:"#8b9199"},
+    {hz:"金色",py:"jīnsè",es:"dorado",color:"#d7a900"}
+  ],
+  numbers:[
+    {hz:"一",py:"yī",es:"uno",n:1},{hz:"二",py:"èr",es:"dos",n:2},{hz:"三",py:"sān",es:"tres",n:3},
+    {hz:"四",py:"sì",es:"cuatro",n:4},{hz:"五",py:"wǔ",es:"cinco",n:5},{hz:"六",py:"liù",es:"seis",n:6},
+    {hz:"七",py:"qī",es:"siete",n:7},{hz:"八",py:"bā",es:"ocho",n:8},{hz:"九",py:"jiǔ",es:"nueve",n:9},
+    {hz:"十",py:"shí",es:"diez",n:10},{hz:"十一",py:"shíyī",es:"once",n:11},
+    {hz:"十二",py:"shí'èr",es:"doce",n:12}
+  ],
+  food:[
+    {hz:"米饭",py:"mǐfàn",es:"arroz",emoji:"🍚"},{hz:"鸡蛋",py:"jīdàn",es:"huevo",emoji:"🥚"},
+    {hz:"面条",py:"miàntiáo",es:"fideos",emoji:"🍜"},{hz:"牛肉",py:"niúròu",es:"carne de vaca",emoji:"🥩"},
+    {hz:"猪肉",py:"zhūròu",es:"carne de cerdo",emoji:"🥓"},{hz:"鸡肉",py:"jīròu",es:"pollo",emoji:"🍗"},
+    {hz:"面包",py:"miànbāo",es:"pan",emoji:"🍞"},{hz:"饺子",py:"jiǎozi",es:"empanadilla china",emoji:"🥟"},
+    {hz:"汤",py:"tāng",es:"sopa",emoji:"🥣"},{hz:"豆腐",py:"dòufu",es:"tofu",emoji:"⬜"},
+    {hz:"奶酪",py:"nǎilào",es:"queso",emoji:"🧀"},{hz:"披萨",py:"pīsà",es:"pizza",emoji:"🍕"}
+  ],
+  fruit:[
+    {hz:"苹果",py:"píngguǒ",es:"manzana",emoji:"🍎"},{hz:"橙子",py:"chéngzi",es:"naranja",emoji:"🍊"},
+    {hz:"西瓜",py:"xīguā",es:"sandía",emoji:"🍉"},{hz:"香蕉",py:"xiāngjiāo",es:"plátano",emoji:"🍌"},
+    {hz:"葡萄",py:"pútáo",es:"uvas",emoji:"🍇"},{hz:"草莓",py:"cǎoméi",es:"fresa",emoji:"🍓"},
+    {hz:"梨",py:"lí",es:"pera",emoji:"🍐"},{hz:"桃子",py:"táozi",es:"melocotón",emoji:"🍑"},
+    {hz:"菠萝",py:"bōluó",es:"piña",emoji:"🍍"},{hz:"芒果",py:"mángguǒ",es:"mango",emoji:"🥭"},
+    {hz:"樱桃",py:"yīngtáo",es:"cerezas",emoji:"🍒"},{hz:"猕猴桃",py:"míhóutáo",es:"kiwi",emoji:"🥝"}
+  ],
+  body:[
+    {hz:"脸",py:"liǎn",es:"cara",emoji:"🙂"},{hz:"手",py:"shǒu",es:"mano",emoji:"🖐️"},
+    {hz:"脚",py:"jiǎo",es:"pie",emoji:"🦶"},{hz:"头",py:"tóu",es:"cabeza",emoji:"👤"},
+    {hz:"膝盖",py:"xīgài",es:"rodilla",emoji:"🦵🔴"},{hz:"眼睛",py:"yǎnjing",es:"ojos",emoji:"👀"},
+    {hz:"鼻子",py:"bízi",es:"nariz",emoji:"👃"},{hz:"嘴巴",py:"zuǐba",es:"boca",emoji:"👄"},
+    {hz:"耳朵",py:"ěrduo",es:"oreja",emoji:"👂"},{hz:"手臂",py:"shǒubì",es:"brazo",emoji:"💪"},
+    {hz:"腿",py:"tuǐ",es:"pierna",emoji:"🦵"},{hz:"头发",py:"tóufa",es:"pelo",emoji:"🧑‍🦱"}
+  ]
+};
+/* Vocabulario adicional del nivel Difícil. Cada categoría llega a 36 palabras. */
+const ADVANCED_DATA={
+  animals:[
+    {hz:"猴子",py:"hóuzi",es:"mono",emoji:"🐵"},{hz:"鸡",py:"jī",es:"gallina",emoji:"🐔"},
+    {hz:"鸭子",py:"yāzi",es:"pato",emoji:"🦆"},{hz:"青蛙",py:"qīngwā",es:"rana",emoji:"🐸"},
+    {hz:"老鼠",py:"lǎoshǔ",es:"ratón",emoji:"🐭"},{hz:"羊",py:"yáng",es:"oveja",emoji:"🐑"},
+    {hz:"山羊",py:"shānyáng",es:"cabra",emoji:"🐐"},{hz:"长颈鹿",py:"chángjǐnglù",es:"jirafa",emoji:"🦒"},
+    {hz:"斑马",py:"bānmǎ",es:"cebra",emoji:"🦓"},{hz:"河马",py:"hémǎ",es:"hipopótamo",emoji:"🦛"},
+    {hz:"犀牛",py:"xīniú",es:"rinoceronte",emoji:"🦏"},{hz:"鳄鱼",py:"èyú",es:"cocodrilo",emoji:"🐊"},
+    {hz:"乌龟",py:"wūguī",es:"tortuga",emoji:"🐢"},{hz:"蛇",py:"shé",es:"serpiente",emoji:"🐍"},
+    {hz:"海豚",py:"hǎitún",es:"delfín",emoji:"🐬"},{hz:"鲸鱼",py:"jīngyú",es:"ballena",emoji:"🐳"},
+    {hz:"鲨鱼",py:"shāyú",es:"tiburón",emoji:"🦈"},{hz:"章鱼",py:"zhāngyú",es:"pulpo",emoji:"🐙"},
+    {hz:"螃蟹",py:"pángxiè",es:"cangrejo",emoji:"🦀"},{hz:"蝴蝶",py:"húdié",es:"mariposa",emoji:"🦋"},
+    {hz:"蜜蜂",py:"mìfēng",es:"abeja",emoji:"🐝"},{hz:"瓢虫",py:"piáochóng",es:"mariquita",emoji:"🐞"},
+    {hz:"企鹅",py:"qǐ'é",es:"pingüino",emoji:"🐧"},{hz:"猫头鹰",py:"māotóuyīng",es:"búho",emoji:"🦉"}
+  ],
+  colors:[
+    {hz:"银色",py:"yínsè",es:"plateado",color:"#c0c0c0"},{hz:"青色",py:"qīngsè",es:"azul verdoso",color:"#19a7a0"},
+    {hz:"天蓝色",py:"tiānlánsè",es:"azul cielo",color:"#79cfff"},{hz:"深蓝色",py:"shēnlánsè",es:"azul oscuro",color:"#163a78"},
+    {hz:"浅蓝色",py:"qiǎnlánsè",es:"azul claro",color:"#a8dcff"},{hz:"深绿色",py:"shēnlǜsè",es:"verde oscuro",color:"#176b3a"},
+    {hz:"浅绿色",py:"qiǎnlǜsè",es:"verde claro",color:"#a8e6a3"},{hz:"深红色",py:"shēnhóngsè",es:"rojo oscuro",color:"#8e2430"},
+    {hz:"酒红色",py:"jiǔhóngsè",es:"granate",color:"#6f1835"},{hz:"米色",py:"mǐsè",es:"beige",color:"#e8d7b7"},
+    {hz:"铜色",py:"tóngsè",es:"cobre",color:"#b87333"},{hz:"彩色",py:"cǎisè",es:"multicolor",color:"linear-gradient(135deg,#ff5b5b,#ffd23c,#4bd16a,#3fa9f5,#9b72db)"},
+    {hz:"荧光绿",py:"yíngguānglǜ",es:"verde neón",color:"#77ff33"},{hz:"玫瑰红",py:"méiguihóng",es:"rojo rosado",color:"#d9366e"},
+    {hz:"淡紫色",py:"dànzǐsè",es:"lila",color:"#cfb7ef"},{hz:"靛蓝色",py:"diànlánsè",es:"índigo",color:"#3f3c9e"},
+    {hz:"珊瑚色",py:"shānhúsè",es:"coral",color:"#ff7f70"},{hz:"橄榄绿",py:"gǎnlǎnlǜ",es:"verde oliva",color:"#7b8235"},
+    {hz:"卡其色",py:"kǎqísè",es:"caqui",color:"#b5a66a"},{hz:"象牙色",py:"xiàngyásè",es:"marfil",color:"#fff7dc"},
+    {hz:"土黄色",py:"tǔhuángsè",es:"ocre",color:"#c79532"},{hz:"墨绿色",py:"mòlǜsè",es:"verde bosque",color:"#124c3b"},
+    {hz:"湖蓝色",py:"húlánsè",es:"azul lago",color:"#36a9c9"},{hz:"薰衣草色",py:"xūnyīcǎosè",es:"lavanda",color:"#b89bdd"}
+  ],
+  numbers:[
+    {hz:"十三",py:"shísān",es:"trece",n:13},{hz:"十四",py:"shísì",es:"catorce",n:14},
+    {hz:"十五",py:"shíwǔ",es:"quince",n:15},{hz:"十六",py:"shíliù",es:"dieciséis",n:16},
+    {hz:"十七",py:"shíqī",es:"diecisiete",n:17},{hz:"十八",py:"shíbā",es:"dieciocho",n:18},
+    {hz:"十九",py:"shíjiǔ",es:"diecinueve",n:19},{hz:"二十",py:"èrshí",es:"veinte",n:20},
+    {hz:"二十一",py:"èrshíyī",es:"veintiuno",n:21},{hz:"二十二",py:"èrshí'èr",es:"veintidós",n:22},
+    {hz:"二十三",py:"èrshísān",es:"veintitrés",n:23},{hz:"二十四",py:"èrshísì",es:"veinticuatro",n:24},
+    {hz:"二十五",py:"èrshíwǔ",es:"veinticinco",n:25},{hz:"二十六",py:"èrshíliù",es:"veintiséis",n:26},
+    {hz:"二十七",py:"èrshíqī",es:"veintisiete",n:27},{hz:"二十八",py:"èrshíbā",es:"veintiocho",n:28},
+    {hz:"二十九",py:"èrshíjiǔ",es:"veintinueve",n:29},{hz:"三十",py:"sānshí",es:"treinta",n:30},
+    {hz:"三十一",py:"sānshíyī",es:"treinta y uno",n:31},{hz:"三十二",py:"sānshí'èr",es:"treinta y dos",n:32},
+    {hz:"三十三",py:"sānshísān",es:"treinta y tres",n:33},{hz:"三十四",py:"sānshísì",es:"treinta y cuatro",n:34},
+    {hz:"三十五",py:"sānshíwǔ",es:"treinta y cinco",n:35},{hz:"三十六",py:"sānshíliù",es:"treinta y seis",n:36}
+  ],
+  food:[
+    {hz:"汉堡",py:"hànbǎo",es:"hamburguesa",emoji:"🍔"},{hz:"薯条",py:"shǔtiáo",es:"patatas fritas",emoji:"🍟"},
+    {hz:"三明治",py:"sānmíngzhì",es:"sándwich",emoji:"🥪"},{hz:"热狗",py:"règǒu",es:"perrito caliente",emoji:"🌭🥫"},
+    {hz:"沙拉",py:"shālā",es:"ensalada",emoji:"🥗"},{hz:"冰淇淋",py:"bīngqílín",es:"helado",emoji:"🍨"},
+    {hz:"蛋糕",py:"dàngāo",es:"tarta",emoji:"🍰"},{hz:"饼干",py:"bǐnggān",es:"galleta",emoji:"🍪"},
+    {hz:"巧克力",py:"qiǎokèlì",es:"chocolate",emoji:"🍫"},{hz:"糖果",py:"tángguǒ",es:"caramelo",emoji:"🍬"},
+    {hz:"牛奶",py:"niúnǎi",es:"leche",emoji:"🥛"},{hz:"水",py:"shuǐ",es:"agua",emoji:"💧"},
+    {hz:"果汁",py:"guǒzhī",es:"zumo",emoji:"🧃"},{hz:"茶",py:"chá",es:"té",emoji:"🍵"},
+    {hz:"鱼肉",py:"yúròu",es:"pescado",emoji:"🐟"},{hz:"虾",py:"xiā",es:"gamba",emoji:"🍤"},
+    {hz:"蔬菜",py:"shūcài",es:"verduras",emoji:"🥦"},{hz:"胡萝卜",py:"húluóbo",es:"zanahoria",emoji:"🥕"},
+    {hz:"玉米",py:"yùmǐ",es:"maíz",emoji:"🌽"},{hz:"土豆",py:"tǔdòu",es:"patata",emoji:"🥔"},
+    {hz:"西红柿",py:"xīhóngshì",es:"tomate",emoji:"🍅"},{hz:"蘑菇",py:"mógu",es:"champiñón",emoji:"🍄"},
+    {hz:"香肠",py:"xiāngcháng",es:"salchicha",emoji:"🌭"},{hz:"包子",py:"bāozi",es:"panecillo relleno",emoji:"♨️🥟"}
+  ],
+  fruit:[
+    {hz:"柠檬",py:"níngméng",es:"limón",emoji:"🍋"},{hz:"椰子",py:"yēzi",es:"coco",emoji:"🥥"},
+    {hz:"蓝莓",py:"lánméi",es:"arándanos",emoji:"🫐"},{hz:"甜瓜",py:"tiánguā",es:"melón",emoji:"🍈"},
+    {hz:"木瓜",py:"mùguā",es:"papaya",emoji:"🟠"},{hz:"石榴",py:"shíliu",es:"granada",emoji:"🔴"},
+    {hz:"无花果",py:"wúhuāguǒ",es:"higo",emoji:"🟣"},{hz:"牛油果",py:"niúyóuguǒ",es:"aguacate",emoji:"🥑"},
+    {hz:"火龙果",py:"huǒlóngguǒ",es:"pitahaya",emoji:"🐉🍈"},{hz:"荔枝",py:"lìzhī",es:"lichi",emoji:"🔴⚪"},
+    {hz:"李子",py:"lǐzi",es:"ciruela",emoji:"🟣🍑"},{hz:"杏子",py:"xìngzi",es:"albaricoque",emoji:"🟠🍑"},
+    {hz:"葡萄柚",py:"pútáoyòu",es:"pomelo rosa",emoji:"🩷🍊"},{hz:"橘子",py:"júzi",es:"mandarina",emoji:"🍊🍃"},
+    {hz:"青柠",py:"qīngníng",es:"lima",emoji:"🍋‍🟩"},{hz:"覆盆子",py:"fùpénzi",es:"frambuesa",emoji:"🩷🫐"},
+    {hz:"黑莓",py:"hēiméi",es:"mora",emoji:"⚫🫐"},{hz:"百香果",py:"bǎixiāngguǒ",es:"maracuyá",emoji:"🟤🟡"},
+    {hz:"柿子",py:"shìzi",es:"caqui",emoji:"🟠🍅"},{hz:"榴莲",py:"liúlián",es:"durián",emoji:"🟢🌵"},
+    {hz:"番石榴",py:"fānshíliu",es:"guayaba",emoji:"🟢🩷"},{hz:"枣",py:"zǎo",es:"azufaifa",emoji:"🔴🫒"},
+    {hz:"杨桃",py:"yángtáo",es:"carambola",emoji:"⭐🍈"},{hz:"柚子",py:"yòuzi",es:"pomelo",emoji:"🟡🍊"}
+  ],
+  body:[
+    {hz:"脖子",py:"bózi",es:"cuello",emoji:"🧣"},{hz:"肩膀",py:"jiānbǎng",es:"hombro",emoji:"🤷"},
+    {hz:"胸",py:"xiōng",es:"pecho",emoji:"🫁"},{hz:"肚子",py:"dùzi",es:"barriga",emoji:"🤰"},
+    {hz:"背",py:"bèi",es:"espalda",emoji:"🔙"},{hz:"手指",py:"shǒuzhǐ",es:"dedo",emoji:"☝️"},
+    {hz:"拇指",py:"mǔzhǐ",es:"pulgar",emoji:"👍"},{hz:"牙齿",py:"yáchǐ",es:"dientes",emoji:"🦷"},
+    {hz:"舌头",py:"shétou",es:"lengua",emoji:"👅"},{hz:"眉毛",py:"méimao",es:"ceja",emoji:"🤨"},
+    {hz:"睫毛",py:"jiémáo",es:"pestañas",emoji:"👁️"},{hz:"额头",py:"étóu",es:"frente",emoji:"🤦"},
+    {hz:"脸颊",py:"liǎnjiá",es:"mejilla",emoji:"😊"},{hz:"下巴",py:"xiàba",es:"barbilla",emoji:"🧔"},
+    {hz:"胳膊肘",py:"gēbozhǒu",es:"codo",emoji:"💪🔴"},{hz:"手腕",py:"shǒuwàn",es:"muñeca",emoji:"⌚"},
+    {hz:"手掌",py:"shǒuzhǎng",es:"palma",emoji:"✋"},{hz:"指甲",py:"zhǐjia",es:"uña",emoji:"💅"},
+    {hz:"腰",py:"yāo",es:"cintura",emoji:"🕺"},{hz:"髋部",py:"kuānbù",es:"cadera",emoji:"🩳"},
+    {hz:"脚踝",py:"jiǎohuái",es:"tobillo",emoji:"🦶🔵"},{hz:"脚后跟",py:"jiǎohòugēn",es:"talón",emoji:"👣"},
+    {hz:"脚趾",py:"jiǎozhǐ",es:"dedo del pie",emoji:"🦶☝️"},{hz:"心脏",py:"xīnzàng",es:"corazón",emoji:"❤️"}
+  ]
+};
+Object.entries(ADVANCED_DATA).forEach(([cat,items])=>DATA[cat].push(...items));
+const CATEGORY_NAMES={animals:"Animales",colors:"Colores",numbers:"Números",food:"Comida",fruit:"Fruta",body:"Cuerpo"};
+const LEVELS={
+  easy:{label:"Fácil",count:6,choices:3},
+  medium:{label:"Medio",count:12,choices:4},
+  hard:{label:"Difícil",count:36,choices:6}
+};
+Object.entries(DATA).forEach(([cat,items])=>items.forEach(item=>item.cat=cat));
+const PRAISE=["好棒","太棒了","对了","真厉害"];
+const $=id=>document.getElementById(id);
+
+let synth=('speechSynthesis' in window)?window.speechSynthesis:null;
+let zhVoice=null,pendingCategory=null,activeCategory=null,activeLevel=null,pool=[],targetQueue=[],current=null,lastTarget=null;
+let streak=0,best=loadBest(),round=0,busy=false,timers=[];
+
+function pickVoice(){
+  if(!synth)return;
+  const voices=synth.getVoices();
+  zhVoice=voices.find(v=>/zh[-_]CN/i.test(v.lang))||voices.find(v=>/^zh/i.test(v.lang))||
+    voices.find(v=>/chinese|中文|普通话|Tingting|Mei-?Jia|Ya-?ling/i.test(v.name))||null;
+}
+if(synth){pickVoice();synth.addEventListener?.('voiceschanged',pickVoice)}
+else{$('audioHint').textContent="Este navegador no tiene voz; puedes jugar leyendo la palabra"}
+
+function say(text,rate=.8){
+  if(!synth||!text)return false;
+  try{
+    synth.cancel();
+    const utterance=new SpeechSynthesisUtterance(text);
+    utterance.lang="zh-CN"; utterance.rate=rate; utterance.pitch=1.08;
+    if(zhVoice)utterance.voice=zhVoice;
+    synth.speak(utterance); return true;
+  }catch(error){
+    $('audioHint').textContent="No se pudo activar la voz; el juego continúa sin sonido"; return false;
+  }
+}
+function schedule(fn,delay){const id=setTimeout(()=>{timers=timers.filter(t=>t!==id);fn()},delay);timers.push(id);return id}
+function clearPending(){timers.forEach(clearTimeout);timers=[];if(synth)try{synth.cancel()}catch(error){}}
+function shuffle(items){
+  const copy=[...items];
+  for(let i=copy.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]]}
+  return copy;
+}
+function loadBest(){try{return Number.parseInt(localStorage.getItem('mejorRachaPandaV2'),10)||0}catch(error){return 0}}
+function saveBest(value){try{localStorage.setItem('mejorRachaPandaV2',String(value))}catch(error){}}
+function animatePanda(kind){const panda=$('panda');panda.classList.remove('cheer','sad');void panda.offsetWidth;panda.classList.add(kind);schedule(()=>panda.classList.remove(kind),700)}
+function updateScore(){
+  const language=window.__gameLang||'es';
+  const rawLevel=activeLevel?LEVELS[activeLevel].label:'';
+  const level=window.__translateGameText?window.__translateGameText(rawLevel):rawLevel;
+  const roundLabel=language==='zh'?`第 <b>${round}</b> 轮`:language==='en'?`Round <b>${round}</b>`:`Ronda <b>${round}</b>`;
+  $('score').innerHTML=`${level} · ${roundLabel} · 🔥 <b>${streak}</b> · 🏆 <b>${best}</b>`;
+  $('progressBar').style.width=`${((round-1)%10+1)*10}%`;
+}
+function refillQueue(){
+  targetQueue=shuffle(pool);
+  if(lastTarget&&targetQueue.length>1&&targetQueue[0]===lastTarget){[targetQueue[0],targetQueue[1]]=[targetQueue[1],targetQueue[0]]}
+}
+function nextTarget(){if(!targetQueue.length)refillQueue();return targetQueue.shift()}
+function distractorsFor(target){
+  const needed=LEVELS[activeLevel].choices-1;
+  let candidates=activeCategory==='all'?pool.filter(item=>item.cat===target.cat&&item!==target):pool.filter(item=>item!==target);
+  if(candidates.length<needed)candidates=Object.values(DATA).flat().filter(item=>item!==target);
+  return shuffle(candidates).slice(0,needed);
+}
+function renderFace(item){
+  if(item.color)return `<div class="swatchdot" style="background:${item.color}"></div>`;
+  if(item.n>12)return `<div class="number">${item.n}</div>`;
+  if(item.n){const size=item.n<=5?'clamp(18px,4.5vh,42px)':'clamp(14px,3.2vh,28px)';return `<div class="dots">${Array.from({length:item.n},()=>`<span style="font-size:${size}">⭐</span>`).join('')}</div>`}
+  return `<div class="emoji">${item.emoji}</div>`;
+}
+function announce(message){$('status').textContent='';schedule(()=>$('status').textContent=message,30)}
+
+function chooseCategory(category){
+  pendingCategory=category;
+  $('levelCategory').textContent=category==='all'?'Todo mezclado':CATEGORY_NAMES[category];
+  $('startScreen').classList.add('hide');$('levelScreen').classList.remove('hide');
+}
+function showCategories(){
+  pendingCategory=null;$('levelScreen').classList.add('hide');$('startScreen').classList.remove('hide');
+}
+function startGame(category,level){
+  clearPending(); activeCategory=category;activeLevel=level;
+  $('confetti').replaceChildren(); $('panda').classList.remove('cheer','sad');
+  const count=LEVELS[level].count;
+  pool=category==='all'?Object.values(DATA).flatMap(items=>items.slice(0,count)):DATA[category].slice(0,count);
+  targetQueue=[]; current=null; lastTarget=null; streak=0; round=0; busy=true;
+  $('startScreen').classList.add('hide');$('levelScreen').classList.add('hide');$('homeBtn').hidden=false;$('speaker').disabled=!synth;
+  $('pandaSpeech').textContent=category==='all'?`¡Todo mezclado en nivel ${LEVELS[level].label.toLowerCase()}!`:`¡${CATEGORY_NAMES[category]} en nivel ${LEVELS[level].label.toLowerCase()}!`;
+  say("我们开始吧",.85); schedule(nextRound,700);
+}
+function showMenu(){
+  clearPending(); current=null; busy=false; pendingCategory=null;activeCategory=null;activeLevel=null;
+  $('confetti').replaceChildren(); $('panda').classList.remove('cheer','sad');
+  $('levelScreen').classList.add('hide');$('startScreen').classList.remove('hide');$('homeBtn').hidden=true;$('score').textContent='';
+  $('cards').replaceChildren(); $('hanzi').textContent=''; $('pinyin').textContent='';
+  $('pandaSpeech').textContent='¡Elige una categoría!'; $('speaker').disabled=true; $('progressBar').style.width='0';
+}
+function nextRound(){
+  busy=false; current=nextTarget(); lastTarget=current; round++;
+  const choices=shuffle([current,...distractorsFor(current)]);
+  $('hanzi').textContent=current.hz; $('pinyin').textContent=current.py; $('pandaSpeech').textContent='¿Cuál es?';
+  const cards=$('cards');cards.className=`cards ${activeLevel}`;cards.replaceChildren();
+  choices.forEach(item=>{
+    const button=document.createElement('button');button.className='card';button.type='button';
+    button.setAttribute('aria-label',`${item.hz} ${item.py}`);button.lang='zh-CN';button.innerHTML=renderFace(item);
+    button.addEventListener('click',()=>choose(item,button));cards.appendChild(button);
+  });
+  updateScore();schedule(()=>say(current?.hz,.75),300);
+}
+function choose(item,element){
+  if(busy||!current)return;
+  if(item===current){
+    busy=true;element.classList.add('correct');streak++;
+    const record=streak>best;if(record){best=streak;saveBest(best)}
+    updateScore();animatePanda('cheer');$('pandaSpeech').textContent='¡Muy bien!';announce(`Correcto: ${current.es}`);
+    if(round%10===0){burst(42);say("太棒了",.9);$('pandaSpeech').textContent='¡Diez rondas! ¡Genial!';schedule(nextRound,1900)}
+    else if(record){burst(24);say(PRAISE[Math.floor(Math.random()*PRAISE.length)],.9);schedule(nextRound,1450)}
+    else{say("对",.9);schedule(nextRound,1050)}
+  }else{
+    busy=true;streak=0;updateScore();element.classList.add('wrong');animatePanda('sad');
+    $('pandaSpeech').textContent='Prueba otra vez';announce(`Ese es ${item.es}. Prueba otra vez.`);
+    schedule(()=>{element.classList.remove('wrong');busy=false;say(current?.hz,.7)},520);
+  }
+}
+function burst(amount=26){
+  const box=$('confetti'),colors=['#ff6b6b','#ffc93c','#5fd37a','#54b4f0','#9b72db'];
+  for(let i=0;i<amount;i++){
+    const piece=document.createElement('i');piece.style.left=Math.random()*100+'vw';piece.style.background=colors[i%colors.length];
+    piece.style.animationDuration=(1+Math.random()*.8)+'s';piece.style.animationDelay=Math.random()*.2+'s';box.appendChild(piece);
+    schedule(()=>piece.remove(),2200);
+  }
+}
+$('cats').addEventListener('click',event=>{const button=event.target.closest('.cat');if(button)chooseCategory(button.dataset.cat)});
+$('levels').addEventListener('click',event=>{const button=event.target.closest('.level');if(button&&pendingCategory)startGame(pendingCategory,button.dataset.level)});
+$('levelBack').addEventListener('click',showCategories);
+$('speaker').addEventListener('click',()=>{if(current)say(current.hz,.7)});
+$('panda').addEventListener('click',()=>{if(current){animatePanda('cheer');say(current.hz,.7)}});
+$('homeBtn').addEventListener('click',showMenu);
+window.addEventListener('pagehide',clearPending);
+</script>
+
+<style id="kids-i18n-style">
+.kids-lang-switch{position:fixed;z-index:1000;right:max(8px,env(safe-area-inset-right));bottom:max(8px,env(safe-area-inset-bottom));display:flex;gap:3px;padding:4px;background:rgba(255,255,255,.94);border:2px solid rgba(80,70,60,.12);border-radius:18px;box-shadow:0 4px 12px rgba(50,40,30,.18);font-family:ui-rounded,"SF Pro Rounded",system-ui,sans-serif}
+.kids-lang-switch button{min-width:37px;min-height:34px;padding:3px 6px;border:0;border-radius:13px;background:transparent;color:#51463e;font:800 13px/1 system-ui,sans-serif;box-shadow:none;transform:none}
+.kids-lang-switch button[aria-pressed="true"]{background:#54b4f0;color:#fff}
+.kids-lang-zh .cat .sub,.kids-lang-zh .cat .csub{display:none}
+@media(max-height:620px){.kids-lang-switch{transform:scale(.82);transform-origin:bottom right}}
+</style>
+<script id="kids-i18n-script">
+(()=>{'use strict';
+const ROWS=[["Busca el intruso","Find the odd one out","找出不同"],["Mira bien y toca el dibujo que es diferente","Look carefully and tap the picture that is different","仔细看，点击不同的图案"],["¿Cuál es diferente?","Which one is different?","哪个不一样？"],["Toca el intruso","Tap the odd one out","点击不同的图案"],["Elige uno de los cuatro dibujos","Choose one of the four pictures","从四个图案中选择一个"],["¡Lo conseguiste!","You did it!","你做到了！"],["Has encontrado todos los intrusos","You found all the odd ones out","你找到了所有不同的图案"],["Casi… prueba otro 😊","Almost… try another one 😊","差一点……试试另一个 😊"],["Completa el patrón","Complete the pattern","完成规律"],["Mira, piensa… ¿qué viene ahora?","Look, think… what comes next?","看一看，想一想……接下来是什么？"],["¿Qué viene ahora?","What comes next?","接下来是什么？"],["Patrón para completar","Pattern to complete","需要完成的规律"],["Elige una respuesta","Choose an answer","选择一个答案"],["Casi… prueba otra","Almost… try another one","差一点……再试一个"],["¡Genial!","Great!","太棒了！"],["Has completado todos los patrones","You completed all the patterns","你完成了所有规律"],["Cuenta los objetos","Count the objects","数一数"],["Cuenta despacio y elige el número","Count slowly and choose the number","慢慢数，然后选择数字"],["¿Cuántos hay?","How many are there?","有多少个？"],["Objetos para contar","Objects to count","要数的物品"],["Elige un número","Choose a number","选择一个数字"],["Cuenta otra vez…","Count again…","再数一次……"],["¡Fantástico!","Fantastic!","太棒了！"],["¡Ya sabes contar hasta diez!","You can count to ten!","你会数到十了！"],["Ordena la secuencia","Put the sequence in order","排列顺序"],["Toca lo que pasa primero, después y al final.","Tap what happens first, next, and last.","依次点击先发生、接着发生和最后发生的事情。"],["Tu secuencia","Your sequence","你的顺序"],["Escenas para ordenar","Scenes to put in order","要排序的画面"],["Mira las imágenes y toca qué pasa primero, después y al final.","Look at the pictures and tap what happens first, next, and last.","看图片，依次点击先发生、接着发生和最后发生的事情。"],["¡Jugar! ▶","Play! ▶","开始！▶"],["¡Muy bien!","Well done!","真棒！"],["Has ordenado todas las historias.","You put all the stories in order.","你排好了所有故事。"],["Otra vez ↻","Again ↻","再玩一次 ↻"],["Casi… prueba otra vez 💛","Almost… try again 💛","差一点……再试一次 💛"],["¡Lo has ordenado! ⭐","You put it in order! ⭐","你排对了！⭐"],["¡Bien! ¿Qué pasa después?","Good! What happens next?","很好！接下来发生什么？"],["¡Genial! ¿Y al final?","Great! And what happens last?","太棒了！最后发生什么？"],["Laberinto de caminos","Path maze","路径迷宫"],["Lleva al animal hasta su comida","Take the animal to its food","带小动物找到食物"],["¡Busca el camino!","Find the path!","找到路线！"],["Usa las flechas para llevar al animal hasta su comida.","Use the arrows to take the animal to its food.","用箭头带小动物找到食物。"],["Por ahí no 🌳","Not that way 🌳","这条路不通 🌳"],["¡Lo encontraste! ⭐","You found it! ⭐","找到了！⭐"],["Prepara la mochila","Pack the backpack","准备书包"],["¿Qué necesitamos?","What do we need?","我们需要什么？"],["Toca las tres cosas que debemos guardar.","Tap the three things we need to pack.","点击需要装进去的三样东西。"],["Empezar","Start","开始"],["Otra mochila ➜","Another backpack ➜","下一个书包 ➜"],["Elige 3 cosas","Choose 3 things","选择三样东西"],["Eso no hace falta","We do not need that","这个不需要"],["¡Mochila preparada! ⭐","Backpack ready! ⭐","书包准备好了！⭐"],["Objetos guardados","Packed objects","装好的物品"],["Elige la ropa","Choose the clothes","选择衣服"],["¿Qué me pongo?","What should I wear?","我该穿什么？"],["Mira la situación y elige dos prendas.","Look at the situation and choose two items of clothing.","看看情景，选择两件衣服。"],["Elige 2 prendas","Choose 2 items","选择两件衣服"],["Prueba otra prenda","Try another item","试试另一件衣服"],["¡Ya estamos preparados! ⭐","We are ready! ⭐","准备好了！⭐"],["Ropa elegida","Chosen clothes","选好的衣服"],["Siguiente ➜","Next ➜","下一个 ➜"],["Jugar","Play","开始"],["▶️ Jugar","▶️ Play","▶️ 开始"],["🔄 Otra vez","🔄 Again","🔄 再玩一次"],["🏠 Inicio","🏠 Home","🏠 首页"],["Otra vez","Again","再玩一次"],["Inicio","Home","首页"],["Progreso","Progress","进度"],["Volver al inicio","Back to start","返回首页"],["Volver a empezar","Restart","重新开始"],["Repetir la instrucción","Repeat the instruction","重复说明"],["Repetir la pregunta","Repeat the question","重复问题"],["Repetir la misión","Repeat the task","重复任务"],["Controles de movimiento","Movement controls","移动控制"],["Mover arriba","Move up","向上移动"],["Mover abajo","Move down","向下移动"],["Mover a la izquierda","Move left","向左移动"],["Mover a la derecha","Move right","向右移动"],["Laberinto","Maze","迷宫"],["Escucha y toca · primeras palabras en chino","Listen and tap · first words in Chinese","听一听，点一点 · 中文启蒙"],["Animales","Animals","动物"],["Colores","Colors","颜色"],["Números","Numbers","数字"],["Comida","Food","食物"],["Fruta","Fruit","水果"],["Cuerpo","Body","身体"],["Todo mezclado","Mixed practice","混合练习"],["Repetir sonido","Repeat sound","再听一次"],["Sube el volumen del Mac 🔈 · El panda habla en chino","Turn up the volume 🔈 · The panda speaks Chinese","请调高音量 🔈 · 熊猫说中文"],["Elige una categoría","Choose a category","选择类别"],["Elige el nivel","Choose a level","选择难度"],["Fácil","Easy","简单"],["Medio","Medium","中等"],["Difícil","Hard","困难"],["6 palabras · 3 respuestas","6 words · 3 answers","6 个词 · 3 个选项"],["12 palabras · 4 respuestas","12 words · 4 answers","12 个词 · 4 个选项"],["36 palabras · 6 respuestas","36 words · 6 answers","36 个词 · 6 个选项"],["← Volver a categorías","← Back to categories","← 返回类别"],["Volver al menú de categorías","Back to the category menu","返回类别菜单"],["Progreso de la partida","Game progress","游戏进度"],["Panda: repetir la palabra","Panda: repeat the word","熊猫：再读一次"],["¡Elige una categoría!","Choose a category!","请选择类别！"],["Escuchar otra vez","Listen again","再听一次"],["Opciones de respuesta","Answer choices","答案选项"],["Toca el altavoz o el panda para repetir 🔊","Tap the speaker or panda to repeat 🔊","点击喇叭或熊猫再听一次 🔊"],["¿Cuál es?","Which one is it?","是哪一个？"],["Prueba otra vez","Try again","再试一次"],["¡Diez rondas! ¡Genial!","Ten rounds! Great!","十轮完成！太棒了！"],["La planta","The plant","植物"],["Semilla","Seed","种子"],["Brote","Sprout","嫩芽"],["Flor","Flower","花"],["Por la mañana","In the morning","早晨"],["Despertar","Wake up","起床"],["Cepillarse","Brush teeth","刷牙"],["Vestirse","Get dressed","穿衣服"],["Manos limpias","Clean hands","干净的手"],["Mojar","Wet","打湿"],["Enjabonar","Use soap","抹肥皂"],["Aclarar","Rinse","冲洗"],["Un dibujo","A drawing","画画"],["Papel","Paper","纸"],["Dibujar","Draw","画"],["Terminado","Finished","完成"],["La merienda","Snack time","点心"],["Pan","Bread","面包"],["Añadir queso","Add cheese","加奶酪"],["Bocadillo","Sandwich","三明治"],["Día de lluvia","Rainy day","下雨天"],["Llueve","It rains","下雨"],["Ponerse el abrigo","Put on a coat","穿外套"],["Abrir el paraguas","Open the umbrella","打开雨伞"],["A dormir","Bedtime","睡觉时间"],["Bañarse","Take a bath","洗澡"],["Dormir","Sleep","睡觉"],["La mariposa","The butterfly","蝴蝶"],["Huevo","Egg","卵"],["Oruga","Caterpillar","毛毛虫"],["Mariposa","Butterfly","蝴蝶"],["Vamos al cole","We are going to school","我们去上学"],["Vamos a la playa","We are going to the beach","我们去海滩"],["Vamos a salir con lluvia","We are going out in the rain","我们要在雨天出门"],["Vamos a hacer deporte","We are going to play sports","我们去运动"],["Vamos de pícnic","We are going on a picnic","我们去野餐"],["Hace mucho frío","It is very cold","天气很冷"],["Está lloviendo","It is raining","正在下雨"],["Es hora de dormir","It is bedtime","该睡觉了"],["Objeto","Object","物品"],["Prenda","Item of clothing","衣服"],["el cuaderno","the notebook","练习本"],["el lápiz","the pencil","铅笔"],["el bocadillo","the sandwich","三明治"],["el bañador","the swimsuit","泳衣"],["la crema solar","the sunscreen","防晒霜"],["la gorra","the cap","帽子"],["el paraguas","the umbrella","雨伞"],["las botas","the boots","靴子"],["el abrigo","the coat","外套"],["la pelota","the ball","球"],["las zapatillas","the trainers","运动鞋"],["el agua","the water","水"],["la manzana","the apple","苹果"],["el zumo","the juice","果汁"],["abrigo","coat","外套"],["guantes","gloves","手套"],["bañador","swimsuit","泳衣"],["chanclas","flip-flops","人字拖"],["botas","boots","靴子"],["camiseta","T-shirt","T恤"],["pantalón corto","shorts","短裤"],["zapatillas","trainers","运动鞋"],["vestido","dress","连衣裙"],["sandalias","sandals","凉鞋"],["bufanda","scarf","围巾"],["camisa","shirt","衬衫"],["manzana","apple","苹果"],["plátano","banana","香蕉"],["fresa","strawberry","草莓"],["bicicleta","bicycle","自行车"],["perro","dog","狗"],["gato","cat","猫"],["conejo","rabbit","兔子"],["calcetín","sock","袜子"],["coche","car","汽车"],["autobús","bus","公交车"],["sandía","watermelon","西瓜"],["pantalón","trousers","裤子"],["gorra","cap","帽子"],["pez","fish","鱼"],["pan","bread","面包"],["queso","cheese","奶酪"],["huevo","egg","鸡蛋"],["avión","plane","飞机"],["osito","teddy bear","泰迪熊"],["cometa","kite","风筝"],["pelota","ball","球"],["zanahoria","carrot","胡萝卜"],["pulpo","octopus","章鱼"],["delfín","dolphin","海豚"],["gallina","hen","母鸡"],["sol","sun","太阳"],["nube","cloud","云"],["estrella","star","星星"],["zapato","shoe","鞋"],["girasol","sunflower","向日葵"],["tulipán","tulip","郁金香"],["rosa","rose","玫瑰"],["tren","train","火车"],["guitarra","guitar","吉他"],["piano","piano","钢琴"],["tambor","drum","鼓"],["tortuga","turtle","乌龟"],["cara alegre","happy face","开心的脸"],["cara enamorada","loving face","喜爱的脸"],["cara dormida","sleepy face","睡着的脸"],["naranja","orange","橙子"],["lápiz","pencil","铅笔"],["libro","book","书"],["mochila","backpack","书包"],["elefante","elephant","大象"],["vaca","cow","奶牛"],["cerdo","pig","猪"],["cohete","rocket","火箭"],["brócoli","broccoli","西兰花"],["maíz","corn","玉米"],["globo","balloon","气球"],["cama","bed","床"],["luna","moon","月亮"],["jabón","soap","肥皂"],["cepillo de dientes","toothbrush","牙刷"],["bañera","bathtub","浴缸"],["uvas","grapes","葡萄"],["abeja","bee","蜜蜂"],["pájaro","bird","鸟"],["caracol","snail","蜗牛"],["tarta","cake","蛋糕"],["regalo","present","礼物"],["sombrilla","beach umbrella","遮阳伞"],["chancla","flip-flop","人字拖"],["concha","shell","贝壳"],["camión de bomberos","fire engine","消防车"],["martillo","hammer","锤子"],["llave","wrench","扳手"],["destornillador","screwdriver","螺丝刀"],["helado","ice cream","冰淇淋"],["¿Cuál es diferente? Toca el intruso.","Which one is different? Tap the odd one out.","哪个不一样？点击不同的图案。"],["Casi. Prueba otro.","Almost. Try another one.","差一点。试试另一个。"],["¡Lo conseguiste! Has encontrado todos los intrusos.","You did it! You found all the odd ones out.","你做到了！你找到了所有不同的图案。"],["Casi. Prueba otra.","Almost. Try another one.","差一点。再试一个。"],["Cuenta otra vez, despacio.","Count again, slowly.","慢慢地再数一次。"],["¿Cuántos hay? Cuenta y elige el número.","How many are there? Count and choose the number.","有多少个？数一数，然后选择数字。"],["Ordena cómo crece una planta","Put the stages of a plant growing in order","排列植物生长的顺序"],["Ordena la rutina de la mañana","Put the morning routine in order","排列早晨活动的顺序"],["Ordena cómo lavarse las manos","Put the hand-washing steps in order","排列洗手的步骤"],["Ordena cómo hacer un dibujo","Put the drawing steps in order","排列画画的步骤"],["Ordena cómo preparar la merienda","Put the snack-making steps in order","排列准备点心的步骤"],["Ordena qué hacemos cuando llueve","Put in order what we do when it rains","排列下雨时要做的事情"],["Ordena la rutina para ir a dormir","Put the bedtime routine in order","排列睡前活动的顺序"],["Ordena cómo nace una mariposa","Put the butterfly life cycle in order","排列蝴蝶成长的顺序"],["¡Muy bien! Lo has ordenado.","Well done! You put it in order.","真棒！你排对了。"],["Por ahí no","Not that way","这条路不通"],["¡Muy bien! Lo encontraste","Well done! You found it","真棒！你找到了"],["Muy bien","Well done","真棒"],["Vamos al cole. Guarda lo que necesitamos","We are going to school. Pack what we need","我们去上学。把需要的东西装进去"],["Vamos a la playa. Guarda lo que necesitamos","We are going to the beach. Pack what we need","我们去海滩。把需要的东西装进去"],["Vamos a salir con lluvia. Guarda lo que necesitamos","We are going out in the rain. Pack what we need","我们要在雨天出门。把需要的东西装进去"],["Vamos a hacer deporte. Guarda lo que necesitamos","We are going to play sports. Pack what we need","我们去运动。把需要的东西装进去"],["Vamos de picnic. Guarda lo que necesitamos","We are going on a picnic. Pack what we need","我们去野餐。把需要的东西装进去"],["¡Mochila preparada! Muy bien","Backpack ready! Well done","书包准备好了！真棒"],["Hace mucho frío. ¿Qué ropa nos ponemos?","It is very cold. What should we wear?","天气很冷。我们该穿什么？"],["Está lloviendo. ¿Qué ropa nos ponemos?","It is raining. What should we wear?","正在下雨。我们该穿什么？"],["Vamos a la playa. ¿Qué nos ponemos?","We are going to the beach. What should we wear?","我们去海滩。该穿什么？"],["Es hora de dormir. ¿Qué nos ponemos?","It is bedtime. What should we wear?","该睡觉了。我们该穿什么？"],["Vamos a hacer deporte. ¿Qué nos ponemos?","We are going to play sports. What should we wear?","我们去运动。该穿什么？"],["¡Muy bien! Ya estamos preparados","Well done! We are ready","真棒！准备好了"],["Este navegador no tiene voz; puedes jugar leyendo la palabra","This browser has no voice; you can play by reading the word","此浏览器没有语音；你可以看着词语玩"],["No se pudo activar la voz; el juego continúa sin sonido","Voice could not be enabled; the game will continue without sound","无法开启语音；游戏将静音继续"],["我的中文游戏 · Juego de chino para peques","My Chinese game · Chinese for little learners","我的中文游戏 · 幼儿中文"],["我的中文游戏 · Panda chino V2","My Chinese game · Chinese Panda V2","我的中文游戏 · 熊猫中文版 V2"],["Repetir instrucción","Repeat instruction","重复说明"],["Elemento que falta","Missing item","缺少的元素"],["¡Muy bien! ⭐","Well done! ⭐","真棒！⭐"],["cero","zero","零"],["uno","one","一"],["dos","two","二"],["tres","three","三"],["cuatro","four","四"],["cinco","five","五"],["seis","six","六"],["siete","seven","七"],["ocho","eight","八"],["nueve","nine","九"],["diez","ten","十"],["once","eleven","十一"],["doce","twelve","十二"],["videojuego","video game","电子游戏"],["televisión","television","电视"],["abanico","fan","扇子"],["salvavidas","life ring","救生圈"],["huevo frito","fried egg","煎蛋"],["calcetines","socks","袜子"]];
+let lang='es';try{const query=new URLSearchParams(location.search).get('lang'),saved=localStorage.getItem('kidsGameLanguage'),chosen=query||saved;if(['es','en','zh'].includes(chosen))lang=chosen}catch(_){const query=new URLSearchParams(location.search).get('lang');if(['es','en','zh'].includes(query))lang=query}
+window.__gameLang=lang;document.documentElement.lang=lang==='zh'?'zh-Hans':lang;if(lang==='zh')document.body.classList.add('kids-lang-zh');
+const index=lang==='en'?1:lang==='zh'?2:0,map=new Map(ROWS.map(r=>[r[0],r[index]]));
+const numberWords={en:['zero','one','two','three','four','five','six','seven','eight','nine','ten'],zh:['零','一','二','三','四','五','六','七','八','九','十']};
+function exact(v){return map.get(v)||v}
+function tx(value){if(lang==='es'||typeof value!=='string'||!value.trim())return value;const lead=value.match(/^\s*/)[0],trail=value.match(/\s*$/)[0];let s=value.trim(),r=exact(s.replace(/\s+/g,' '));if(r!==s)return lead+r+trail;
+ let m;
+ if((m=s.match(/^(Camino|Mochila|Ropa) (\d+)$/))){const name=m[1]==='Camino'?(lang==='en'?'Path':'路线'):m[1]==='Mochila'?(lang==='en'?'Backpack':'书包'):(lang==='en'?'Outfit':'衣服');r=name+' '+m[2];}
+ else if((m=s.match(/^Elegir (.+)$/)))r=lang==='en'?'Choose '+m[1]:'选择'+m[1];
+ else if((m=s.match(/^(\d+) objetos$/))){const n=Number(m[1]);r=lang==='en'?n+' object'+(n===1?'':'s'):(numberWords.zh[n]||n)+'个物品';}
+ else if((m=s.match(/^Ronda (\d+) de (\d+)$/)))r=lang==='en'?`Round ${m[1]} of ${m[2]}`:`第 ${m[1]} / ${m[2]} 轮`;
+ else if((m=s.match(/^Mochila (\d+) de (\d+)$/)))r=lang==='en'?`Backpack ${m[1]} of ${m[2]}`:`书包 ${m[1]} / ${m[2]}`;
+ else if((m=s.match(/^Ropa (\d+) de (\d+)$/)))r=lang==='en'?`Outfit ${m[1]} of ${m[2]}`:`衣服 ${m[1]} / ${m[2]}`;
+ else if((m=s.match(/^Camino (\d+) de (\d+)$/)))r=lang==='en'?`Path ${m[1]} of ${m[2]}`:`路线 ${m[1]} / ${m[2]}`;
+ else if((m=s.match(/^¡(\d+) de (\d+)!$/)))r=lang==='en'?`${m[1]} of ${m[2]}!`:`${m[1]} / ${m[2]}！`;
+ else if((m=s.match(/^(\d+) de (\d+) historias completadas$/)))r=lang==='en'?`${m[1]} of ${m[2]} stories completed`:`已完成 ${m[1]} / ${m[2]} 个故事`;
+ else if((m=s.match(/^Paso (\d+), vacío$/)))r=lang==='en'?`Step ${m[1]}, empty`:`第 ${m[1]} 步，空`;
+ else if((m=s.match(/^Paso (\d+): (.+)$/)))r=lang==='en'?`Step ${m[1]}: ${exact(m[2])}`:`第 ${m[1]} 步：${exact(m[2])}`;
+ else if((m=s.match(/^¡Sí, hay (\d+)! ⭐$/)))r=lang==='en'?`Yes, there are ${m[1]}! ⭐`:`对，有 ${m[1]} 个！⭐`;
+ else if((m=s.match(/^¡Muy bien! (.+) es el intruso([.! 🎉]*)$/)))r=lang==='en'?`Well done! ${exact(m[1])} is the odd one out${m[2]}`:`真棒！${exact(m[1])}是不一样的${m[2]}`;
+ else if((m=s.match(/^Correcto: (.+)$/)))r=lang==='en'?`Correct: ${exact(m[1])}`:`正确：${exact(m[1])}`;
+ else if((m=s.match(/^Ese es (.+)\. Prueba otra vez\.$/)))r=lang==='en'?`That is ${exact(m[1])}. Try again.`:`这是${exact(m[1])}。再试一次。`;
+ else if((m=s.match(/^¡(.+) en nivel (fácil|medio|difícil)!$/i))){const lv=exact(m[2][0].toUpperCase()+m[2].slice(1)).toLowerCase();r=lang==='en'?`${exact(m[1])} on ${lv} level!`:`${exact(m[1])}，${lv}难度！`}
+ else if((m=s.match(/^(Fácil|Medio|Difícil) · Ronda (\d+) · (.+)$/)))r=`${exact(m[1])} · ${lang==='en'?'Round':'第'} ${m[2]}${lang==='zh'?' 轮':''} · ${m[3]}`;
+ else if((m=s.match(/^¡Muy bien! Hay (cero|uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)\.$/))){const ns=['cero','uno','dos','tres','cuatro','cinco','seis','siete','ocho','nueve','diez'],i=ns.indexOf(m[1]);r=lang==='en'?`Well done! There are ${numberWords.en[i]}.`:`真棒！有${numberWords.zh[i]}个。`}
+ if(r===s&&(m=s.match(/^(.+)\. Toca primero, después y al final\.$/))){const first=exact(m[1]);r=lang==='en'?first+'. Tap first, next, and last.':first+'。依次点击第一步、下一步和最后一步。'}
+ return lead+r+trail}
+window.__translateGameText=tx;
+let kidsLiveUtterance=null,kidsSpeechTimer=0;
+window.__kidsSpeak=(text,rate=.88,pitch=1.1)=>{
+ if(!('speechSynthesis' in window)||!('SpeechSynthesisUtterance' in window)||!text)return false;
+ const synth=window.speechSynthesis,spoken=tx(String(text)),code=lang==='zh'?'zh-CN':lang==='en'?'en-US':'es-ES';
+ const launch=()=>{const utterance=new SpeechSynthesisUtterance(spoken),voices=synth.getVoices?.()||[];utterance.lang=code;utterance.rate=rate;utterance.pitch=pitch;utterance.volume=1;utterance.voice=voices.find(v=>v.lang?.toLowerCase()===code.toLowerCase())||voices.find(v=>v.lang?.toLowerCase().startsWith(code.slice(0,2).toLowerCase()))||null;kidsLiveUtterance=utterance;utterance.onend=utterance.onerror=()=>{if(kidsLiveUtterance===utterance)kidsLiveUtterance=null};synth.speak(utterance)};
+ clearTimeout(kidsSpeechTimer);const active=synth.speaking||synth.pending;try{synth.cancel()}catch(_){}if(active)kidsSpeechTimer=setTimeout(launch,55);else launch();return true;
+};
+function translateAttributes(element){for(const a of ['aria-label','title','placeholder'])if(element.hasAttribute(a)){const v=tx(element.getAttribute(a));if(v!==element.getAttribute(a))element.setAttribute(a,v)}}
+function translateNode(node){if(node.nodeType===3){if(!/^(SCRIPT|STYLE)$/.test(node.parentElement?.tagName||'')){const v=tx(node.nodeValue);if(v!==node.nodeValue)node.nodeValue=v}}else if(node.nodeType===1){translateAttributes(node);node.querySelectorAll?.('*').forEach(translateAttributes);const w=document.createTreeWalker(node,NodeFilter.SHOW_TEXT);while(w.nextNode())translateNode(w.currentNode)}}
+if(lang!=='es'){document.title=tx(document.title);translateNode(document.body);}
+function syncInactiveScreens(){document.querySelectorAll('[data-kids-inactive]').forEach(el=>{if(!el.matches('.screen.hide,.screen.hidden,.overlay.hide,.overlay.hidden')){el.inert=false;el.removeAttribute('aria-hidden');delete el.dataset.kidsInactive}});document.querySelectorAll('.screen.hide,.screen.hidden,.overlay.hide,.overlay.hidden').forEach(el=>{el.inert=true;el.setAttribute('aria-hidden','true');el.dataset.kidsInactive='true'})}
+syncInactiveScreens();new MutationObserver(syncInactiveScreens).observe(document.body,{subtree:true,attributes:true,attributeFilter:['class']});
+const observer=new MutationObserver(list=>{if(lang==='es')return;for(const change of list){if(change.type==='characterData')translateNode(change.target);else if(change.type==='attributes')translateNode(change.target);else change.addedNodes.forEach(translateNode)}});observer.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['aria-label','title','placeholder']});
+function wrap(name){const base=window[name];if(typeof base==='function'&&!base.__translated){const fn=function(text,...rest){return base(tx(text),...rest)};fn.__translated=true;window[name]=fn}}
+wrap('speak');wrap('safeSpeak');
+const box=document.createElement('div');box.className='kids-lang-switch';box.setAttribute('aria-label',lang==='es'?'Idioma':lang==='en'?'Language':'语言');[['es','ES'],['en','EN'],['zh','中文']].forEach(([code,label])=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.setAttribute('aria-pressed',String(code===lang));b.setAttribute('aria-label',code==='es'?'Español':code==='en'?'English':'中文');b.onclick=()=>{try{localStorage.setItem('kidsGameLanguage',code)}catch(_){}const url=new URL(location.href);url.searchParams.set('lang',code);location.href=url.href};box.appendChild(b)});document.body.appendChild(box);
+})();
+</script>
+</body>
+</html>
